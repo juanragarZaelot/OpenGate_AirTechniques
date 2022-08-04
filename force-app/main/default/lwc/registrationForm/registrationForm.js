@@ -1,11 +1,29 @@
 import { LightningElement,track } from 'lwc';
 import { loadStyle } from 'lightning/platformResourceLoader';
 import AirTechniquesStyles from '@salesforce/resourceUrl/AirTechniquesStyles';
+import { ShowToastEvent } from 'lightning/platformShowToastEvent';
+import processSave from '@salesforce/apex/RegistrationFormController.processRegistration';
+import validateAddress from '@salesforce/apex/RegistrationFormController.validateAddress';
 
 export default class RegistrationForm extends LightningElement {
 
     @track sent = false;
-    @track record = {};
+    @track hideRegisterButton = true;
+    @track showMessagePlaceId = false;
+    @track className ='slds-notify slds-notify_toast';
+    @track message;
+    @track record = {firstName: '',
+                    lastName: '',
+                    accountName: '',
+                    street: '',
+                    city:'',
+                    province:'',
+                    postalCode: '',
+                    country:'',
+                    email:'',
+                    phone:'',
+                    placeId: null
+                    };
     initialized = false;
 
     /**
@@ -19,8 +37,9 @@ export default class RegistrationForm extends LightningElement {
         if(this.initialized){
             return;
         }
-
+        console.log('[renderedCallback] start');
         this.initialized=true;
+        this.hideRegisterButton = true;
 
         Promise.all([
             loadStyle(this, AirTechniquesStyles ),
@@ -39,14 +58,28 @@ export default class RegistrationForm extends LightningElement {
     /**
     * @author Juan Ramirez
     * @date 2022/07/26
-    * @description method use to populate practice options  
+    * @description to verify if all information has been filled out
     * @param
-    * @return 
+    * @return {boolean} 
     */
-    get optionsPractice() {
-        return [
-            { label: '--None--', value: 'None' },
-        ];
+	get isDisabled(){
+        let aux = JSON.parse(JSON.stringify(this.record));
+        let disabled = false;
+        for(let row in aux){
+            //shop will be "1", "2"...n
+            if (row != 'placeId' && (!aux.hasOwnProperty(row) || aux[row].length === 0 || !aux[row].trim())){
+                disabled = true;
+            }
+         }
+        const obj=this.template.querySelector('.required-field');
+		let emailValid=false;
+		if(obj!=undefined && obj!=null){
+			emailValid=obj.checkValidity();
+            disabled = disabled == false ? !emailValid : disabled;
+		}
+		 
+            
+		return disabled;
     }
 
     /**
@@ -56,8 +89,33 @@ export default class RegistrationForm extends LightningElement {
     * @param
     * @return {boolean} 
     */
-	get isAddOperation(){
-		return false;
+	get isDisabledSave(){
+        let aux = JSON.parse(JSON.stringify(this.record));
+        let disabled = false;
+        for(let row in aux){
+            //shop will be "1", "2"...n
+            if (!aux.hasOwnProperty(row) || (aux[row] != null && aux[row].length === 0) || (aux[row] != null && !aux[row].trim()))
+                disabled = true;
+         }
+        const obj=this.template.querySelector('.required-field');
+		let emailValid=false;
+		if(obj!=undefined && obj!=null){
+			emailValid=obj.checkValidity();
+            disabled = disabled == false ? !emailValid : disabled;
+		}
+
+		return (disabled || this.hideRegisterButton);
+    }
+
+    /**
+    * @author Juan Ramirez
+    * @date 2022/08/01
+    * @description to verify if has a valid place id
+    * @param
+    * @return {boolean} 
+    */
+	get hasPlaceId(){
+        return this.record.placeId != null && this.record.placeId != '' ? true : false;
     }
 
     /**
@@ -84,13 +142,13 @@ export default class RegistrationForm extends LightningElement {
 
     /**
     * @author Juan Ramirez
-    * @date 2022/07/26
-    * @description assign Practice (returned from lighting-combobox) to json to send 
+    * @date 2022/07/27
+    * @description assign Account Name (returned from lighting-combobox) to json to send 
     * @param
     * @return 
     */
-     handleChangePractice(event) {
-        this.record.practice = event.detail.value;
+     handleChangeAccountName(event) {
+        this.record.accountName = event.detail.value;
     }
 
     /**
@@ -118,7 +176,7 @@ export default class RegistrationForm extends LightningElement {
      handleChangeEmail(event) {
         this.record.email = event.detail.value;
     }
-
+    
     /**
     * @author Juan Ramirez
     * @date 2022/07/26
@@ -150,5 +208,109 @@ export default class RegistrationForm extends LightningElement {
     */
      handleValidateAddress(event) {
         console.log('[RegistrationForm.handleValidateAddress] this.record: ' + JSON.stringify(this.record));
+        this.sent=true;
+        validateAddress({recordForm: JSON.stringify(this.record)}).then(result => {
+			
+			this.sent=false;
+			
+			//debugger;
+			this.className = 'slds-notify slds-notify_toast';
+            this.showMessagePlaceId = false;
+			if(result.typeMessage!='Error'){
+			    this.hideRegisterButton = false;
+                this.record.placeId = result.placeId;
+                this.showMessagePlaceId = true;
+                if(result.accountId == null || result.accountId == undefined){
+                    this.className +=' slds-theme_success';
+                    this.message = 'Click Register to create a new account for this business';
+                }
+                else {
+                    this.className +=' slds-theme_warning';
+                    this.message = 'This Address is already on our system, click Register to create a new registration for this business';
+                }
+                //this.showNotification(result.typeMessage, 'There is Place Id related to this address');
+
+            } else{
+                this.showNotification(result.typeMessage,result.message);
+            }
+			
+		}).catch(error => {
+				console.log('error: '+error);
+				this.sent=false;
+		});
+    }
+
+    /**
+    * @author Juan Ramirez
+    * @date 2022/07/27
+    * @description process save the account information
+    * @param
+    * @return 
+    */
+	processSave(event){
+		console.log('[RegistrationForm.processSave] save value');
+		this.sent=true;
+        processSave({recordForm: JSON.stringify(this.record)}).then(result => {
+			
+			this.sent=false;
+			
+			//debugger;
+			this.showNotification(result.typeMessage,result.message);
+			if(result.typeMessage!='Error'){
+                this.clearRecord();
+            } else{
+                
+            }
+			
+		}).catch(error => {
+				console.log('error: '+error);
+				this.sent=false;
+		});
+    }
+
+    /**
+    * @author Juan Ramirez
+    * @date 2022/07/27
+    * @description show notifications with toast standard component
+    * @param
+    * @return 
+    */
+     showNotification(type,message) {
+
+        const event = new ShowToastEvent({
+           
+            message: message,
+            variant: type
+        });
+        this.dispatchEvent(event);
+
+    }
+    /**
+    * @author Juan Ramirez
+    * @date 2022/08/02
+    * @description process to clear record object
+    * @param
+    * @return 
+    */
+	clearRecord(){
+        
+        for(let row in this.record){
+            //shop will be "1", "2"...n
+            this.record[row] = row == 'placeId' ? null : '';
+            
+         }
+         this.hideRegisterButton = true;
+         this.showMessagePlaceId = false;
+         this.className = 'slds-notify slds-notify_toast';
+    }
+    /**
+    * @author Juan Ramirez
+    * @date 2022/08/02
+    * @description method to handle clear all fields of the form
+    * @param
+    * @return 
+    */
+     handleClear(event) {
+        this.clearRecord();
     }
 }

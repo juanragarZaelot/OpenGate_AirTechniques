@@ -1,70 +1,80 @@
 <template>
-    <lightning-card>
-        <h3 slot="title">
-            Register Account
-        </h3>
-        <div class="slds-p-horizontal_small">
-    
-        <div class="slds-grid slds-wrap">
-            <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-1 slds-large-size_1-of-3">
-                &nbsp;
-            </div>
-            <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-1 slds-large-size_1-of-3">
-                <div class="slds-box">
-                        <div class="slds-grid slds-wrap">
-                            <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-1 slds-large-size_1-of-1">
-                                <lightning-input type="text" label="First Name" onchange={handleChangeFirstName}></lightning-input>
-                            </div>
-                            <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-1 slds-large-size_1-of-1">
-                                <lightning-input type="text" label="Last Name" onchange={handleChangeLastName}></lightning-input>
-                            </div>
-                            <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-1 slds-large-size_1-of-1">
-                                <lightning-combobox
-                                    name="practice"
-                                    label="Practice"
-                                    placeholder="Select Practice"
-                                    options={optionsPractice}
-                                    onchange={handleChangePractice} ></lightning-combobox>
-                            </div>
-                            <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-1 slds-large-size_1-of-1">
-                                <lightning-input-address
-                                    address-label="Address"
-                                    street-label="Street"
-                                    city-label="City"
-                                    country-label="Country"
-                                    province-label="State/Province"
-                                    postal-code-label="Zip/PostalCode"
-                                    street=""
-                                    city=""
-                                    country=""
-                                    province=""
-                                    postal-code=""
-                                    onchange={handleChangeAddress} ></lightning-input-address>
-                            </div>
-                            <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-1 slds-large-size_1-of-1">
-                                <lightning-input type="email" label="Email" onchange={handleChangeEmail}></lightning-input>
-                            </div>
-                            <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-1 slds-large-size_1-of-1">
-                                <lightning-input type="tel" label="Phone" onchange={handleChangePhone}></lightning-input>
-                            </div>
-                        </div>
-                </div>
-            </div>
-            <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-1 slds-large-size_1-of-3">
-                &nbsp;
-            </div>
+    <div class="slds-grid slds-wrap">
+        <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-1 slds-large-size_1-of-3">
+            &nbsp;
         </div>
+        <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-1 slds-large-size_1-of-3">
+            <lightning-card>
+                <h3 slot="title">
+                    Register an Account
+                </h3>
+                <div class="slds-p-horizontal_small">
+            
+                
+                        
+                                <div class="slds-grid slds-wrap">
+                                    <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-1 slds-large-size_1-of-1">
+                                        <lightning-input type="text"  value={record.firstName} required label="First Name" maxlength="55"
+                                        onchange={handleChangeFirstName}></lightning-input>
+                                    </div>
+                                    <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-1 slds-large-size_1-of-1">
+                                        <lightning-input type="text"  value={record.lastName} required label="Last Name" maxlength="55"
+                                        onchange={handleChangeLastName}></lightning-input>
+                                    </div>
+                                    <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-1 slds-large-size_1-of-1">
+                                        <lightning-input type="text" value={record.accountName} required label="Account Name" maxlength="55"
+                                        onchange={handleChangeAccountName}></lightning-input>
+                                    </div>
+                                    <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-1 slds-large-size_1-of-1">
+                                        <lightning-input-address required
+                                            
+                                            address-label="Address"
+                                            street-label="Street"
+                                            city-label="City"
+                                            country-label="Country"
+                                            province-label="State/Province"
+                                            postal-code-label="Zip/PostalCode"
+                                            street={record.street}
+                                            city={record.city}
+                                            country={record.country}
+                                            province={record.province}
+                                            postal-code={record.postalCode}
+                                            onchange={handleChangeAddress} ></lightning-input-address>
+                                    </div>
+                                    <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-1 slds-large-size_1-of-1">
+                                        <lightning-input type="email" value={record.email} class="required-field" 
+                                        maxlength="55"
+                                        required label="Email" onchange={handleChangeEmail} ></lightning-input>
+                                    </div>
+                                    <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-1 slds-large-size_1-of-1">
+                                        <lightning-input type="tel"  value={record.phone} required label="Phone" maxlength="20"
+                                        onchange={handleChangePhone}></lightning-input>
+                                    </div>
+                                    <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-1 slds-large-size_1-of-1" if:true={showMessagePlaceId}>
+                                        <c-alert-message class-name={className} message={message}></c-alert-message>
+                                    </div>
+                                </div>
+                        
+                    
+            </div>
+            
+                <footer class="slds-modal__footer">
+                    <lightning-button name="cancel" label="Cancel"  onclick={handleCancel} class="slds-m-left_x-small"></lightning-button>
+                    <lightning-button name="clear" label="Clear"  onclick={handleClear} class="slds-m-left_x-small"></lightning-button>
+                    <lightning-button name="next" label="Validate Address" variant="brand" disabled={isDisabled} onclick={handleValidateAddress} class="slds-m-left_x-small"></lightning-button>
+                    <lightning-button name="next" label="Register" variant="brand" disabled={isDisabledSave} onclick={processSave} class="slds-m-left_x-small"></lightning-button>
+                    
+                </footer>
+                
+            
+            <div class="exampleHolder" if:true={sent}>
+                <lightning-spinner alternative-text="Loading" size="large"></lightning-spinner>
+            </div>
+        </lightning-card>
     </div>
-    
-        <footer class="slds-modal__footer">
-            <lightning-button name="cancel" label="Cancel"  onclick={handleCancel} class="slds-m-left_x-small"></lightning-button>
-            <lightning-button name="next" label="Validate Address" variant="brand" disabled={isDisabled} onclick={handleValidateAddress} class="slds-m-left_x-small"></lightning-button>
-        </footer>
-        
-    
-    <div class="exampleHolder" if:true={sent}>
-        <lightning-spinner alternative-text="Loading" size="large"></lightning-spinner>
+    <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-1 slds-large-size_1-of-3">
+        &nbsp;
     </div>
-</lightning-card>
+</div>
 <c-navigate-to-component></c-navigate-to-component>
 </template>
